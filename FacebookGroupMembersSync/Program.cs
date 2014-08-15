@@ -26,6 +26,7 @@ namespace FacebookGroupMembersSync
             while (true)
             {
                 dynamic members = client.Get(endpoint);
+                var actualUsers = new List<User>();
 
                 foreach (dynamic member in (JsonArray)members["data"])
                 {
@@ -37,8 +38,15 @@ namespace FacebookGroupMembersSync
                     user.IsAdmin = member.administrator;
 
                     repository.Save<User>(user);
+                    actualUsers.Add(user);
                 }
 
+                var savedUsers = repository.All<User>().Select(x => x._id);
+
+                foreach(var user in savedUsers.Where(x => !actualUsers.Any(y => y._id == x)))
+                {
+                    repository.Delete<User>(user);
+                }
                 Thread.Sleep(600000);
             }    
         }
