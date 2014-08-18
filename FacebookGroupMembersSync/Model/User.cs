@@ -29,7 +29,7 @@ namespace FacebookGroupMembersSync.Model
 		public bool HasChanged()
 		{
 			var generatedHash = GenerateHash ();
-			if (generatedHash == Hash)
+			if (!string.IsNullOrEmpty (Hash) && generatedHash == Hash)
 				return false;
 
 			Hash = generatedHash;
