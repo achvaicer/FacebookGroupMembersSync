@@ -15,7 +15,7 @@ namespace FacebookGroupMembersSync
     {
         private static string FacebookAccessToken = ConfigurationManager.AppSettings["FacebookAccessToken"];
         private static string FacebookGroupId = ConfigurationManager.AppSettings["FacebookGroupId"];
-	private static string Limit = ConfigurationManager.AppSettings["Limit"];
+		private static string Limit = ConfigurationManager.AppSettings["Limit"];
 
         static void Main(string[] args)
         {
@@ -32,11 +32,12 @@ namespace FacebookGroupMembersSync
                 foreach (dynamic member in (JsonArray)members["data"])
                 {
                     string id = member.id;
-                    User user = repository.Single<User>(id) ?? new User() ;
+					User user = repository.Single<User>(id) ?? new User() { DateCreated = DateTime.Now };
 
                     user._id = id;
                     user.FriendlyName = user.Username = member.name;
                     user.IsAdmin = member.administrator;
+					user.LastUpdated = DateTime.Now;
 
                     repository.Save<User>(user);
                     actualUsers.Add(user);

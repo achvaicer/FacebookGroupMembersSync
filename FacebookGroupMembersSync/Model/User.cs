@@ -15,6 +15,7 @@ namespace FacebookGroupMembersSync.Model
         public string FacebookAccessToken { get; set; }
         public string FacebookId { get { return _id; } set { _id = value; } }
         public string _id { get; set; }
-        
+        public DateTime DateCreated { get; set; }
+		public DateTime LastUpdated { get; set; }
     }
 }
