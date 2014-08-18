@@ -15,11 +15,12 @@ namespace FacebookGroupMembersSync
     {
         private static string FacebookAccessToken = ConfigurationManager.AppSettings["FacebookAccessToken"];
         private static string FacebookGroupId = ConfigurationManager.AppSettings["FacebookGroupId"];
+	private static string Limit = ConfigurationManager.AppSettings["Limit"];
 
         static void Main(string[] args)
         {
             var client = new FacebookClient(FacebookAccessToken);
-            var endpoint = string.Format("{0}/members", FacebookGroupId);
+            var endpoint = string.Format("{0}/members?limit={1}", FacebookGroupId, Limit);
             
             var repository = new MongoRepository(new RepositoryKeys(), ConfigurationManager.AppSettings["MongoConnection"], ConfigurationManager.AppSettings["MongoDBName"]);
 
