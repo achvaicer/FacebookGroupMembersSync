@@ -3,11 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.ComponentModel;
+using System.IO;
 
 namespace FacebookGroupMembersSync.Model
 {
     public class User
     {
+		private string[] NotCompiledProperties = new [] { "Hash", "FacebookAccessToken" };
+
         public string Username { get; set; }
         public string FriendlyName { get; set; }
         public bool IsAuthenticated { get; set; }
@@ -17,5 +23,29 @@ namespace FacebookGroupMembersSync.Model
         public string _id { get; set; }
         public DateTime DateCreated { get; set; }
 		public DateTime LastUpdated { get; set; }
+
+		public string Hash { get; private set; }
+
+		public bool HasChanged()
+		{
+			var generatedHash = GenerateHash ();
+			if (generatedHash == Hash)
+				return false;
+
+			Hash = generatedHash;
+			return true;
+		}
+
+
+		private string GenerateHash()
+		{
+			var type = typeof(User);
+			var props = type.GetProperties ().Where (x => !NotCompiledProperties.Contains (x.Name)).OrderBy (x => x.Name);
+
+			var values = string.Join (";", props.Select (x => x.GetValue (this, null) ?? string.Empty));
+
+			return Convert.ToBase64String(MD5.Create ().ComputeHash (Encoding.ASCII.GetBytes (values)));
+		}
+
     }
 }

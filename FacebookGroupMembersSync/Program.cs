@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Security.Policy;
 
 namespace FacebookGroupMembersSync
 {
@@ -37,9 +38,12 @@ namespace FacebookGroupMembersSync
                     user._id = id;
                     user.FriendlyName = user.Username = member.name;
                     user.IsAdmin = member.administrator;
-					user.LastUpdated = DateTime.Now;
 
-                    repository.Save<User>(user);
+					if (user.HasChanged ()) 
+					{
+						user.LastUpdated = DateTime.Now;
+	                    repository.Save<User>(user);
+					}
                     actualUsers.Add(user);
                 }
 
@@ -47,7 +51,7 @@ namespace FacebookGroupMembersSync
 
                 foreach(var user in savedUsers.Where(x => !actualUsers.Any(y => y._id == x)))
                 {
-                    repository.Delete<User>(user);
+					repository.Delete<User>(user);
                 }
                 Thread.Sleep(600000);
             }    
