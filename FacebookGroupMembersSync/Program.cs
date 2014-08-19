@@ -25,35 +25,44 @@ namespace FacebookGroupMembersSync
             
             var repository = new MongoRepository(new RepositoryKeys(), ConfigurationManager.AppSettings["MongoConnection"], ConfigurationManager.AppSettings["MongoDBName"]);
 
+
             while (true)
             {
-                dynamic members = client.Get(endpoint);
-                var actualUsers = new List<User>();
-
-                foreach (dynamic member in (JsonArray)members["data"])
-                {
-                    string id = member.id;
-					User user = repository.Single<User>(id) ?? new User() { DateCreated = DateTime.Now };
-
-                    user._id = id;
-                    user.FriendlyName = user.Username = member.name;
-                    user.IsAdmin = member.administrator;
-
-					if (user.HasChanged ()) 
-					{
-						user.LastUpdated = DateTime.Now;
-	                    repository.Save<User>(user);
+				try 
+				{
+					dynamic members = client.Get (endpoint);
+					var actualUsers = new List<User> ();
+                	
+					foreach (dynamic member in (JsonArray)members["data"]) {
+						string id = member.id;
+						User user = repository.Single<User> (id) ?? new User () { DateCreated = DateTime.Now };
+                	
+						user._id = id;
+						user.FriendlyName = user.Username = member.name;
+						user.IsAdmin = member.administrator;
+                	
+						if (user.HasChanged ()) {
+							user.LastUpdated = DateTime.Now;
+							repository.Save<User> (user);
+						}
+						actualUsers.Add (user);
 					}
-                    actualUsers.Add(user);
-                }
-
-                var savedUsers = repository.All<User>().Select(x => x._id);
-
-                foreach(var user in savedUsers.Where(x => !actualUsers.Any(y => y._id == x)))
-                {
-					repository.Delete<User>(user);
-                }
-                Thread.Sleep(600000);
+                	
+					var savedUsers = repository.All<User> ().Select (x => x._id);
+                	
+					foreach (var user in savedUsers.Where(x => !actualUsers.Any(y => y._id == x))) 
+					{
+						repository.Delete<User> (user);
+					}
+					Thread.Sleep (600000);
+				} 
+				catch (FacebookOAuthException) 
+				{
+					IEnumerable<User> admins = repository.Where<User> (new Dictionary<string, object> () { { "IsAdmin", true } });
+					var admin = admins.OrderByDescending (x => x.LastUpdated).FirstOrDefault (x => !string.IsNullOrEmpty (x.FacebookAccessToken) && x.FacebookAccessToken != FacebookAccessToken);
+					if (admin != null)
+						FacebookAccessToken = admin.FacebookAccessToken;
+				}
             }    
         }
     }

@@ -2,6 +2,7 @@
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
+using MongoDB.Driver.Builders;
 
 namespace FacebookGroupMembersSync.Repository
 {
@@ -39,6 +40,13 @@ namespace FacebookGroupMembersSync.Repository
             var entity = collection.FindAllAs<TEntity>();
             return entity;
         }
+
+		public IEnumerable<TEntity> Where<TEntity>(IDictionary<string, object> query) where TEntity : class, new()
+		{
+			var collection = GetCollection<TEntity>();
+			var entity = collection.FindAs<TEntity> (new QueryDocument (query));
+			return entity;
+		}
 
         public bool Exists<TEntity>(object key) where TEntity : class, new()
         {
