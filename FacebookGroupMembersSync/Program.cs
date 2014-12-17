@@ -55,7 +55,6 @@ namespace FacebookGroupMembersSync
 					{
 						repository.Delete<User> (user);
 					}
-					Thread.Sleep (600000);
 				} 
 				catch (FacebookOAuthException)
 				{
@@ -65,6 +64,7 @@ namespace FacebookGroupMembersSync
 					if (admin != null)
 						FacebookAccessToken = admin.FacebookAccessToken;
 				}
+                Thread.Sleep(600000 * (errorCount + 1));
             }    
         }
     }
