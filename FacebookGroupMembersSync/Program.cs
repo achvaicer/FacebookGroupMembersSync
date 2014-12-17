@@ -20,6 +20,7 @@ namespace FacebookGroupMembersSync
 
         static void Main(string[] args)
         {
+            var errorCount = 0;
             var client = new FacebookClient(FacebookAccessToken);
             var endpoint = string.Format("{0}/members?limit={1}", FacebookGroupId, Limit);
             
@@ -56,9 +57,10 @@ namespace FacebookGroupMembersSync
 					}
 					Thread.Sleep (600000);
 				} 
-				catch (FacebookOAuthException) 
+				catch (FacebookOAuthException)
 				{
-					IEnumerable<User> admins = repository.Where<User> (new Dictionary<string, object> () { { "IsAdmin", true } });
+				    if (errorCount++ == 10) return;
+					var admins = repository.Where<User> (new Dictionary<string, object> () { { "IsAdmin", true } });
 					var admin = admins.OrderByDescending (x => x.LastUpdated).FirstOrDefault (x => !string.IsNullOrEmpty (x.FacebookAccessToken) && x.FacebookAccessToken != FacebookAccessToken);
 					if (admin != null)
 						FacebookAccessToken = admin.FacebookAccessToken;
